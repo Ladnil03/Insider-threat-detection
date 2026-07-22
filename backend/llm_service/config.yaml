@@ -1,0 +1,18 @@
+# LLM service configuration
+# Controls which provider is active, model names, and API timeouts.
+
+active_provider: groq                    # "groq" | "ollama"
+
+groq:
+  api_key_env: GROQ_API_KEY              # env var name holding the key
+  model: llama-3.1-8b-instant
+  temperature: 0.3
+  max_tokens: 512
+  timeout_seconds: 30
+
+ollama:
+  host_env: OLLAMA_HOST                  # env var name
+  model_env: OLLAMA_MODEL                # env var name
+  temperature: 0.3
+  max_tokens: 512
+  timeout_seconds: 60

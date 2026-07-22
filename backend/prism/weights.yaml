@@ -1,0 +1,11 @@
+# PRISM sub-score weights
+# Each key is a sub-score name; the value is its weight in the final
+# weighted sum. Weights are normalised internally by scorer.py.
+# Adjust these to tune the rule-based scoring sensitivity.
+
+email_sentiment: 0.15
+logon_deviation: 0.20
+file_access_density: 0.25
+usb_activity: 0.15
+dodgy_peer_interaction: 0.10
+off_hours_activity: 0.15

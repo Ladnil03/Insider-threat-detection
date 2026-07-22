@@ -1,0 +1,33 @@
+# OpenIRM — backend dependencies
+# Pinned versions for reproducible builds.
+# Install: pip install -r backend/requirements.txt
+
+# Core data
+pandas==3.0.3
+numpy==2.4.6
+
+# Machine learning
+torch==2.13.0
+scikit-learn==1.9.0
+shap==0.52.0
+
+# API server
+fastapi==0.139.2
+uvicorn==0.51.0
+
+# Database
+sqlalchemy==2.0.51
+
+# Config
+pyyaml==6.0.3
+python-dotenv==1.2.2
+
+# HTTP (for Groq API calls)
+httpx==0.28.1
+
+# Testing
+pytest==9.1.1
+
+# Linting / formatting
+black==26.5.1
+ruff==0.15.22

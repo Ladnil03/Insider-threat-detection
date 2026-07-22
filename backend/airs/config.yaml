@@ -1,0 +1,23 @@
+# AIRS autoencoder configuration
+# Hyperparameters, blending factor, and retraining policy.
+
+model:
+  input_dim: 64            # will be set dynamically from feature count
+  encoding_dim: 16
+  hidden_layers: [32, 16, 8]
+  dropout: 0.1
+
+training:
+  batch_size: 64
+  learning_rate: 0.001
+  max_epochs: 100
+  early_stopping_patience: 10
+  validation_split: 0.2
+
+scoring:
+  alpha: 0.7               # blending: alpha * autoencoder + (1-alpha) * PRISM
+  threshold_percentile: 95  # threshold at this percentile of benign error
+
+feedback:
+  retrain_threshold: 0.05   # retrain when average score drift > this
+  max_feedback_samples: 1000
