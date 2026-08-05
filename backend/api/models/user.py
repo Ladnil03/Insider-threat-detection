@@ -1,18 +1,19 @@
-"""SQLAlchemy ORM model for users."""
+"""User ORM Model."""
 
-from sqlalchemy import Column, DateTime, Integer, String
-from sqlalchemy.sql import func
+from datetime import datetime
 
-from backend.api.db import Base
+from sqlalchemy import Column, DateTime, String
+
+from api.db import Base
 
 
-class User(Base):
-    """A monitored employee or contractor."""
+class UserModel(Base):
+    """User database model representing monitored corporate employees."""
 
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(String(50), unique=True, nullable=False, index=True)
-    role = Column(String(50))
-    department = Column(String(100))
-    created_at = Column(DateTime, server_default=func.now())
+    user_id = Column(String, primary_key=True, index=True)
+    user_name = Column(String, nullable=False)
+    role = Column(String, nullable=False)
+    department = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)

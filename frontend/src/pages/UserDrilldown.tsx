@@ -1,10 +1,10 @@
-function UserDrilldown() {
+import React from 'react';
+
+export const UserDrilldown: React.FC = () => {
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold">User Drilldown</h2>
-      <p className="text-gray-500">Coming in Week 11</p>
+    <div className="p-4 bg-slate-800 rounded">
+      <h2 className="text-xl font-bold">User Risk Drill-down</h2>
+      <p className="text-slate-400">Detailed metric breakdown and SHAP attribution for selected user.</p>
     </div>
   );
-}
-
-export default UserDrilldown;
+};

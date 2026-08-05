@@ -1,22 +1,23 @@
-"""Risk-bucketing thresholds for PRISM scores.
+"""Risk bucketing thresholds for categorization."""
 
-Maps continuous risk scores to discrete severity labels
-(e.g. low / medium / high / critical) for display and policy
-triggering.
-"""
+from typing import Literal
+
+RiskLevel = Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
 
-def score_to_bucket(score: float) -> str:
-    """Convert a numeric risk score to a severity label.
+def classify_risk_score(score: float) -> RiskLevel:
+    """Categorizes a normalized risk score [0.0, 1.0] into a risk bucket.
 
     Args:
-        score: Risk score in [0, 1].
+        score: Floating point risk score between 0.0 and 1.0.
 
     Returns:
-        One of "low", "medium", "high", "critical".
-
-    Todo:
-        Define threshold constants (Week 3).
-
+        Risk level category string.
     """
-    raise NotImplementedError("Week 3 — implement bucket thresholds.")
+    if score >= 0.8:
+        return "CRITICAL"
+    if score >= 0.6:
+        return "HIGH"
+    if score >= 0.3:
+        return "MEDIUM"
+    return "LOW"

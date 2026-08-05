@@ -1,6 +1,12 @@
-import apiClient from "./client";
-import type { Feedback } from "../types";
+import { apiClient } from './client';
 
-export async function submitFeedback(feedback: Feedback): Promise<void> {
-  await apiClient.post("/feedback", feedback);
+export interface FeedbackPayload {
+  user_id: string;
+  adjusted_score: number;
+  notes?: string;
 }
+
+export const submitFeedback = async (payload: FeedbackPayload): Promise<{ status: string }> => {
+  const response = await apiClient.post<{ status: string }>('/feedback', payload);
+  return response.data;
+};

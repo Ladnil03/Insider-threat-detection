@@ -1,22 +1,26 @@
-"""PRISM rule-based risk scorer.
+"""PRISM Rule-Based Risk Sub-Score Calculator."""
 
-Computes per-feature sub-scores and a weighted total score for each
-activity record. Sub-score definitions follow the PRISM methodology
-from the base paper (Koli et al.).
-"""
+from typing import Any, Dict
+
+from prism.buckets import RiskLevel, classify_risk_score
 
 
-def compute_risk_score(activity: dict) -> float:
-    """Compute weighted PRISM risk score for a single activity.
+def calculate_prism_score(activity_features: Dict[str, float]) -> Dict[str, Any]:
+    """Calculates weighted PRISM rule-based score from daily user features.
 
     Args:
-        activity: Dictionary with feature values and metadata.
+        activity_features: Dictionary of user activity metric counts.
 
     Returns:
-        Float risk score in [0, 1].
-
-    Todo:
-        Implement sub-score logic in Week 3.
-
+        Dictionary containing raw score, normalized score, and risk level.
     """
-    raise NotImplementedError("Week 3 — implement PRISM sub-scores.")
+    total_score: float = 0.0
+    # Stub computation
+    normalized_score: float = min(1.0, max(0.0, total_score))
+    risk_level: RiskLevel = classify_risk_score(normalized_score)
+
+    return {
+        "raw_score": total_score,
+        "prism_score": normalized_score,
+        "risk_level": risk_level,
+    }

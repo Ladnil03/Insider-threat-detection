@@ -1,22 +1,27 @@
-"""Input sanitisation before prompting the LLM.
+"""Input Sanitization and Safety Module for Prompt Hygiene."""
 
-Ensures no PII, free-form user text, or unexpected content reaches
-the prompt. All fields are validated against expected types and
-lengths.
-"""
+import re
 
 
-def sanitise_for_llm(context: dict) -> dict:
-    """Strip or redact fields that should not reach the LLM.
+def sanitize_input_text(text: str) -> str:
+    """Sanitizes user and metric inputs before inserting into LLM prompt templates.
+
+    Removes prompt injection attempts, control characters, and structural markdown exploits.
 
     Args:
-        context: Raw context dict (score, SHAP, user info).
+        text: Raw input string.
 
     Returns:
-        Sanitised copy safe for prompt construction.
-
-    Todo:
-        Implement redaction rules in Week 7.
-
+        Cleaned input string safe for prompt formatting.
     """
-    raise NotImplementedError("Week 7 — implement sanitisation.")
+    if not text:
+        return ""
+    # Strip dangerous instruction injection keywords and non-printable chars
+    cleaned = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
+    cleaned = re.sub(
+        r"(SYSTEM PROMPT:|IGNORE PREVIOUS INSTRUCTIONS)",
+        "[REDACTED]",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    return cleaned.strip()

@@ -1,24 +1,23 @@
+import React from 'react';
+
 interface ScoreSliderProps {
   value: number;
-  onChange: (v: number) => void;
+  onChange: (val: number) => void;
 }
 
-function ScoreSlider({ value, onChange }: ScoreSliderProps) {
+export const ScoreSlider: React.FC<ScoreSliderProps> = ({ value, onChange }) => {
   return (
-    <div className="flex items-center gap-2">
-      <label className="text-sm font-medium">Adjust Score:</label>
+    <div className="flex flex-col gap-2">
+      <label className="text-sm text-slate-300 font-medium">Analyst Risk Rating: {value.toFixed(2)}</label>
       <input
         type="range"
-        min={0}
-        max={1}
-        step={0.01}
+        min="0"
+        max="1"
+        step="0.01"
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-40"
+        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
       />
-      <span className="text-sm tabular-nums">{value.toFixed(2)}</span>
     </div>
   );
-}
-
-export default ScoreSlider;
+};

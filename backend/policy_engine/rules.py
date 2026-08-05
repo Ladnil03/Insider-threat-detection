@@ -1,22 +1,25 @@
-"""Policy rule definitions.
+"""Policy Rule Definitions."""
 
-Each rule is a callable that takes an activity record and returns
-a violation severity (or None). Rules are data-driven from a config
-dict so they can be added without code changes.
-"""
-
-from typing import Callable
+from typing import Any, Dict, List
 
 
-def define_rules() -> list[Callable]:
-    """Return list of policy rule functions.
+def get_default_policy_rules() -> List[Dict[str, Any]]:
+    """Returns baseline policy rules mapping threshold conditions to automated actions.
 
     Returns:
-        List of callables, each accepting (activity: dict) and
-        returning None (no violation) or a severity string.
-
-    Todo:
-        Define rule implementations in Week 5.
-
+        List of rule dictionaries.
     """
-    raise NotImplementedError("Week 5 — implement policy rules.")
+    return [
+        {
+            "rule_id": "RULE-USB-EXFIL",
+            "name": "Mass USB Copy Detection",
+            "condition": lambda metrics: metrics.get("usb_file_copy", 0) > 50,
+            "action": "SIMULATED_REVOKE_USB_PERMISSIONS",
+        },
+        {
+            "rule_id": "RULE-CRITICAL-SCORE",
+            "name": "Critical Risk Score Breach",
+            "condition": lambda metrics: metrics.get("risk_score", 0.0) >= 0.85,
+            "action": "SIMULATED_MANDATORY_SUPERVISOR_ALERT",
+        },
+    ]

@@ -1,54 +1,46 @@
-"""PyTorch autoencoder architecture for AIRS.
+"""AIRS PyTorch Autoencoder Neural Network Architecture."""
 
-Learns a compressed representation of benign user activity; high
-reconstruction error on new activity indicates anomalous (risky)
-behaviour.
-"""
-
+import torch
 import torch.nn as nn
 
 
-class Autoencoder(nn.Module):
-    """Feedforward autoencoder with configurable hidden layers."""
+class AIRSAutoencoder(nn.Module):
+    """PyTorch Autoencoder model for user behavior anomaly detection.
 
-    def __init__(
-        self,
-        input_dim: int,
-        encoding_dim: int,
-        hidden_dims: list[int],
-        dropout: float = 0.1,
-    ) -> None:
-        """Initialise encoder-decoder architecture.
+    Encodes input user feature vectors into a compressed latent representation
+    and reconstructs them. Anomaly score is derived from MSE reconstruction error.
+    """
+
+    def __init__(self, input_dim: int = 16, latent_dim: int = 2) -> None:
+        """Initializes encoder and decoder network layers.
 
         Args:
             input_dim: Number of input features.
-            encoding_dim: Bottleneck layer size.
-            hidden_dims: Sizes of hidden layers in the encoder.
-            dropout: Dropout probability between layers.
-
+            latent_dim: Bottleneck latent dimension size.
         """
         super().__init__()
-        # ponytail: one linear stack — keep it simple;
-        #   deeper architectures if validation loss plateaus.
-        layers: list[nn.Module] = []
-        prev = input_dim
-        for h in hidden_dims:
-            layers.extend([nn.Linear(prev, h), nn.ReLU(), nn.Dropout(dropout)])
-            prev = h
-        layers.append(nn.Linear(prev, encoding_dim))
-        self.encoder = nn.Sequential(*layers)
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, 8),
+            nn.ReLU(),
+            nn.Linear(8, latent_dim),
+            nn.ReLU(),
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, 8),
+            nn.ReLU(),
+            nn.Linear(8, input_dim),
+            nn.Sigmoid(),
+        )
 
-        decoder_dims = list(reversed(hidden_dims))
-        dec_layers: list[nn.Module] = []
-        prev = encoding_dim
-        for h in decoder_dims:
-            dec_layers.extend([nn.Linear(prev, h), nn.ReLU(), nn.Dropout(dropout)])
-            prev = h
-        dec_layers.append(nn.Linear(prev, input_dim))
-        self.decoder = nn.Sequential(*dec_layers)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through encoder and decoder.
 
-    def forward(self, x):
-        """Forward pass: encode then decode."""
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
+        Args:
+            x: Input feature tensor of shape (batch_size, input_dim).
+
+        Returns:
+            Reconstructed feature tensor of shape (batch_size, input_dim).
+        """
+        latent = self.encoder(x)
+        reconstructed = self.decoder(latent)
+        return reconstructed

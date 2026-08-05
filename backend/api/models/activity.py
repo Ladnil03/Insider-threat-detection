@@ -1,22 +1,21 @@
-"""SQLAlchemy ORM model for activity records."""
+"""Activity Log ORM Model."""
+
+from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
-from sqlalchemy.sql import func
 
-from backend.api.db import Base
+from api.db import Base
 
 
-class Activity(Base):
-    """A single activity event logged for a user."""
+class ActivityModel(Base):
+    """Daily aggregated user activity feature log record."""
 
     __tablename__ = "activities"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(
-        String(50), ForeignKey("users.user_id"), nullable=False, index=True
-    )
-    timestamp = Column(DateTime, nullable=False)
-    activity_type = Column(String(100))
-    description = Column(String(500))
-    risk_score = Column(Float, default=0.0)
-    created_at = Column(DateTime, server_default=func.now())
+    user_id = Column(String, ForeignKey("users.user_id"), nullable=False, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    logon_after_hours = Column(Float, default=0.0)
+    usb_file_copy = Column(Float, default=0.0)
+    email_external_count = Column(Float, default=0.0)
+    web_job_search_count = Column(Float, default=0.0)

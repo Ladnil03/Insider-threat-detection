@@ -1,25 +1,75 @@
 # Contributing to OpenIRM
 
-Thank you for your interest! This project is in early development and contributions are welcome.
+Thank you for your interest in contributing to OpenIRM! We welcome contributions from the open-source community.
 
-## Quick start
+> [!IMPORTANT]
+> **VIRTUAL ENVIRONMENT REQUIREMENT (STRICT)**:
+> All backend development, script execution, linting, testing, and package installations **MUST** occur inside the Python virtual environment located at `backend/venv/`. Never install dependencies globally into your system Python.
 
-1. Fork and clone the repo.
-2. Install backend dependencies: `pip install -r backend/requirements.txt`
-3. Install frontend dependencies: `cd frontend && npm install`
-4. Copy `.env.example` to `.env` and fill in your API keys.
+---
 
-## Code standards
+## 1. Local Development Setup
 
-- **Python:** PEP 8. Run `black` and `ruff` before committing.
-- **TypeScript:** ESLint + Prettier. Run `npm run lint && npm run format` before committing.
-- **Tests:** All new features must include tests. Run `pytest` (backend) and `npm test` (frontend).
-- **Commits:** Follow [Conventional Commits](https://www.conventionalcommits.org/).
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/Ladnil03/Insider-threat-detection.git
+cd Insider-threat-detection
+```
 
-## Pull request process
+### Step 2: Set Up Python Virtual Environment
+Create the virtual environment at `backend/venv/`:
+```bash
+python -m venv backend/venv
+```
 
-1. Open an issue describing the change before starting work.
-2. Create a feature branch (`feat/`, `fix/`, `docs/`, etc.).
-3. Submit a PR with a clear description and link to the issue.
+Activate the virtual environment:
+- **Windows (CMD)**:
+  ```cmd
+  backend\venv\Scripts\activate
+  ```
+- **Windows (PowerShell)**:
+  ```powershell
+  backend\venv\Scripts\Activate.ps1
+  ```
+- **Linux / macOS**:
+  ```bash
+  source backend/venv/bin/activate
+  ```
 
-See `docs/project_report.md` for architecture and roadmap.
+Your terminal prompt should now indicate `(venv)`.
+
+### Step 3: Install Backend Dependencies
+Inside the activated virtual environment, run:
+```bash
+pip install -r backend/requirements.txt
+```
+
+---
+
+## 2. Code Quality & Guidelines
+
+- **Formatting & Linting**: We enforce `black` (line length 88) and `ruff`. Before submitting code, run:
+  ```bash
+  black backend/
+  ruff check backend/
+  ```
+- **Testing**: All backend logic must include test coverage in `backend/tests/`. Run tests via:
+  ```bash
+  pytest backend/
+  ```
+- **Type Hints**: All Python functions require explicit `typing` hints and docstrings.
+- **Commit Messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/):
+  - `feat:` for new features
+  - `fix:` for bug fixes
+  - `docs:` for documentation updates
+  - `test:` for test additions/modifications
+  - `refactor:` for code cleanups
+  - `chore:` for build/maintenance changes
+
+---
+
+## 3. Pull Request Process
+
+1. Fork the repo and create your branch from `main`: `git checkout -b feat/your-feature-name`.
+2. Ensure all tests pass and linters run cleanly.
+3. Open a Pull Request with a clear description of your changes and reference any related issues.

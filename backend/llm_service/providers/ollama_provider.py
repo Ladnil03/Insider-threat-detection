@@ -1,40 +1,40 @@
-"""Ollama local provider implementation.
+"""Ollama Local / On-Prem Provider Implementation."""
 
-Calls a locally-running Ollama instance for fully offline/on-prem
-LLM inference. Ideal for development and data-sovereign deployments.
-"""
+from typing import Any, Dict
 
-from base import BaseProvider
+from llm_service.providers.base import BaseLLMProvider
 
 
-class OllamaProvider(BaseProvider):
-    """LLM provider backed by a local Ollama instance."""
+class OllamaProvider(BaseLLMProvider):
+    """Local Ollama provider preserving complete on-prem data sovereignty."""
 
     def __init__(
-        self, host: str = "http://localhost:11434", model: str = "llama3.1:8b"
+        self, model: str = "llama3:8b", base_url: str = "http://localhost:11434"
     ) -> None:
-        """Initialise with Ollama host and model.
+        """Initializes Ollama provider settings.
 
         Args:
-            host: Base URL of the Ollama server.
-            model: Model tag available in the local Ollama instance.
-
+            model: Ollama model tag.
+            base_url: Ollama server HTTP endpoint.
         """
-        self._host = host.rstrip("/")
-        self._model = model
+        self.model = model
+        self.base_url = base_url
 
-    def complete(self, prompt: str, **kwargs) -> str:
-        """Call Ollama generate endpoint.
+    def generate_recommendation(
+        self, prompt: str, system_prompt: str
+    ) -> Dict[str, Any]:
+        """Queries local Ollama instance.
 
         Args:
-            prompt: Full prompt string.
-            **kwargs: temperature, max_tokens, etc.
+            prompt: Formatted user risk summary prompt.
+            system_prompt: Persona system prompt.
 
         Returns:
-            The model's response text.
-
-        Todo:
-            Implement actual HTTP call in Week 7.
-
+            Dictionary with response text, model name, and status.
         """
-        raise NotImplementedError("Week 7 — implement Ollama API call.")
+        return {
+            "text": "[Ollama Local Stub] Recommended Action: Conduct secondary host audit.",
+            "model": self.model,
+            "provider": "ollama",
+            "status": "mock",
+        }

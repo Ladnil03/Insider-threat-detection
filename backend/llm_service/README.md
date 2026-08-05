@@ -1,9 +1,11 @@
-# LLM Service
+# LLM Threat Service Module
 
-Orchestrates risk score + SHAP explanation + user context into a plain-English analyst recommendation via a configurable LLM provider.
+This module orchestrates prompt construction, safety sanitization, and LLM provider invocation to convert numerical scores + SHAP attributions into natural language threat analyst recommendations.
 
-**Providers:**
-- `groq_provider` — Groq API (free tier, default)
-- `ollama_provider` — local Ollama (on-prem fallback)
+## Provider Architecture
+OpenIRM uses a decoupled provider interface (`providers/base.py`):
+- **Groq API Provider (`groq_provider.py`)**: Default hosted free-tier provider serving open-weight models (`Llama 3.3 70B`, `DeepSeek-R1 distills`).
+- **Ollama Provider (`ollama_provider.py`)**: Secondary local provider for offline/on-prem air-gapped deployments.
 
-**Interface:** `BaseProvider` in `providers/base.py` — add new providers without touching the orchestration logic.
+## Trade-off Notice
+Using Groq trades off strict on-prem data sovereignty for cloud inference speed and zero-cost infrastructure. The provider pattern allows swapping in local Ollama without modifying business logic.

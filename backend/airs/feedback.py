@@ -1,30 +1,17 @@
-"""Human-feedback blending and retraining triggers.
-
-Analyst feedback (score slider adjustments) is stored and used to
-linearly blend AIRS scores. When cumulative drift exceeds
-retrain_threshold, a retraining signal is emitted.
-"""
+"""Human Analyst Feedback Blending and Online Adaptation."""
 
 
-def blend_with_feedback(
-    airs_score: float,
-    prism_score: float,
-    feedback_delta: float = 0.0,
-    alpha: float = 0.7,
+def blend_analyst_feedback(
+    model_score: float, analyst_score: float, alpha: float = 0.7
 ) -> float:
-    """Blend AIRS and PRISM scores with optional analyst correction.
+    """Blends model reconstruction score with analyst manual rating using parameter alpha.
 
     Args:
-        airs_score: Score from the autoencoder [0, 1].
-        prism_score: Score from PRISM rules [0, 1].
-        feedback_delta: Analyst adjustment offset (-1 to 1).
-        alpha: Blending weight for AIRS vs PRISM.
+        model_score: Score computed by AIRS model.
+        analyst_score: Analyst adjusted score from UI.
+        alpha: Weight given to analyst feedback (0.0 to 1.0).
 
     Returns:
-        Blended risk score in [0, 1].
-
-    Todo:
-        Implement persistent feedback storage and retraining in Week 5.
-
+        Blended composite score.
     """
-    raise NotImplementedError("Week 5 — implement feedback logic.")
+    return (1.0 - alpha) * model_score + alpha * analyst_score

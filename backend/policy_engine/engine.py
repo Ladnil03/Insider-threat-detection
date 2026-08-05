@@ -1,22 +1,29 @@
-"""Policy violation evaluation engine.
+"""Policy Engine Trigger Evaluation Logic."""
 
-Iterates all defined rules against an activity stream and logs
-triggered violations with severity.
-"""
+from typing import Any, Dict, List
+
+from policy_engine.rules import get_default_policy_rules
 
 
-def evaluate_activity(activity: dict) -> list[dict]:
-    """Run all policy rules against a single activity record.
+def evaluate_policy_rules(user_metrics: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Evaluates user metrics against policy rules and returns triggered actions.
 
     Args:
-        activity: Dict with feature values and metadata.
+        user_metrics: Dictionary of user risk and activity metrics.
 
     Returns:
-        List of violation records, each with rule name, severity,
-        and a human-readable reason. Empty list = no violations.
-
-    Todo:
-        Implement rule iteration in Week 5.
-
+        List of triggered action event dicts.
     """
-    raise NotImplementedError("Week 5 — implement policy engine.")
+    rules = get_default_policy_rules()
+    triggered_actions = []
+
+    for rule in rules:
+        if rule["condition"](user_metrics):
+            triggered_actions.append(
+                {
+                    "rule_id": rule["rule_id"],
+                    "rule_name": rule["name"],
+                    "action": rule["action"],
+                }
+            )
+    return triggered_actions

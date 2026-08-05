@@ -1,6 +1,13 @@
-# Policy Engine
+# Policy Engine Module
 
-Defines policy rules (e.g. "file copy > 100MB in an hour") and evaluates activity streams against them. Logs simulated automated actions (no real enforcement — just audit trail for analyst review).
+Evaluates user risk scores and behavioral metrics against security policy threshold rules to trigger simulated automated containment actions.
 
-**Inputs:** Activity records + rule definitions
-**Outputs:** Policy violation events with severity and suggested action
+## Purpose
+- Continuous automated rule evaluation.
+- Simulated mitigation action logging (e.g., revoking USB permissions, alerting security managers).
+
+## Inputs
+- User risk scores and daily activity metrics.
+
+## Outputs
+- List of triggered policy violation logs.

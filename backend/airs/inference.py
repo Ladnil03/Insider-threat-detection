@@ -1,21 +1,25 @@
-"""Inference / scoring with the trained AIRS autoencoder.
+"""AIRS Anomaly Risk Scoring Inference Module."""
 
-Computes reconstruction error for new activity and maps it to a risk
-score in [0, 1] via percentile-based normalisation.
-"""
+import torch
+import torch.nn as nn
+
+from airs.model import AIRSAutoencoder
 
 
-def score_activity(features) -> float:
-    """Compute AIRS risk score for a single activity feature vector.
+def compute_reconstruction_risk(
+    model: AIRSAutoencoder, feature_tensor: torch.Tensor
+) -> float:
+    """Computes anomaly risk score based on MSE reconstruction error.
 
     Args:
-        features: numpy array or torch Tensor of shape (input_dim,).
+        model: Trained AIRSAutoencoder model.
+        feature_tensor: Input tensor for a single user sample (1, input_dim).
 
     Returns:
-        Risk score in [0, 1].
-
-    Todo:
-        Implement reconstruction error → risk score mapping in Week 4.
-
+        Scalar reconstruction loss value representing risk score.
     """
-    raise NotImplementedError("Week 4 — implement scoring logic.")
+    model.eval()
+    with torch.no_grad():
+        reconstructed = model(feature_tensor)
+        loss = nn.functional.mse_loss(reconstructed, feature_tensor)
+    return float(loss.item())

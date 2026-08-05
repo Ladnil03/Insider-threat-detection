@@ -1,17 +1,17 @@
-import apiClient from "./client";
-import type { RiskScore, ShapExplanation, Recommendation } from "../types";
+import { apiClient } from './client';
+import { ScoreResponse, ExplainResponse, RecommendResponse } from '../types';
 
-export async function fetchRiskScore(userId: string): Promise<RiskScore> {
-  const { data } = await apiClient.post<RiskScore>("/score", { userId });
-  return data;
-}
+export const fetchUserScore = async (userId: string): Promise<ScoreResponse> => {
+  const response = await apiClient.post<ScoreResponse>('/score', { user_id: userId });
+  return response.data;
+};
 
-export async function fetchExplanation(userId: string, activityId: string): Promise<ShapExplanation[]> {
-  const { data } = await apiClient.post<ShapExplanation[]>("/explain", { userId, activityId });
-  return data;
-}
+export const fetchUserExplanation = async (userId: string): Promise<ExplainResponse> => {
+  const response = await apiClient.post<ExplainResponse>('/explain', { user_id: userId });
+  return response.data;
+};
 
-export async function fetchRecommendation(userId: string, activityId: string): Promise<Recommendation> {
-  const { data } = await apiClient.post<Recommendation>("/recommend", { userId, activityId });
-  return data;
-}
+export const fetchUserRecommendation = async (userId: string): Promise<RecommendResponse> => {
+  const response = await apiClient.post<RecommendResponse>('/recommend', { user_id: userId });
+  return response.data;
+};

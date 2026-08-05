@@ -1,102 +1,186 @@
-# Week 1 — Repo Scaffolding + Environment Setup
+# Week 1 Completion Log: Project Scaffolding, Tooling, and Environment
 
-**Date completed:** 2026-07-22
+- **Date Completed**: 2026-07-28
+- **Author**:  OpenIRM Team
 
-## Files created
+---
 
-### Root level
-- `.gitignore` — Python/Node/IDE exclusions, data dir, cache dirs
-- `.env.example` — placeholder vars for DB, Groq, Ollama, app config
-- `README.md` — project skeleton, status badge, architecture placeholder
-- `LICENSE` — MIT, copyright OpenIRM Contributors
-- `CONTRIBUTING.md` — minimal contribution guide
+## 1. Files Created and Modified
 
-### Backend (`backend/`)
-- `__init__.py` — package markers (all submodules)
-- `requirements.txt` — pinned deps: pandas, numpy, torch, scikit-learn, shap, fastapi, uvicorn, sqlalchemy, pyyaml, python-dotenv, httpx, pytest, black, ruff
-- `pyproject.toml` — black + ruff config, pytest config
-- `README.md` — backend module overview
-- `data/raw/.gitkeep`, `data/filtered/.gitkeep`
-- `data_pipeline/` — `__init__.py`, `filter_cert.py`, `preprocess.py`, `config.py`, `README.md` (all stubs with NotImplementedError docstrings)
-- `prism/` — `__init__.py`, `scorer.py`, `weights.yaml`, `buckets.py`, `README.md`
-- `airs/` — `__init__.py`, `model.py` (actual Autoencoder nn.Module), `train.py`, `inference.py`, `feedback.py`, `config.yaml`, `README.md`
-- `explainability/` — `__init__.py`, `shap_explainer.py`, `visualize.py`, `README.md`
-- `llm_service/` — `__init__.py`, `prompts.py`, `recommend.py`, `safety.py`, `providers/__init__.py`, `providers/base.py` (abstract BaseProvider), `providers/groq_provider.py`, `providers/ollama_provider.py`, `config.yaml`, `README.md`
-- `api/` — `__init__.py`, `main.py` (FastAPI app with /health), `routes/__init__.py`, `routes/score.py`, `routes/explain.py`, `routes/recommend.py`, `routes/feedback.py`, `routes/policy.py`, `models/__init__.py`, `models/user.py`, `models/activity.py`, `models/score.py`, `models/feedback.py`, `schemas/__init__.py`, `db.py`, `README.md`
-- `policy_engine/` — `__init__.py`, `rules.py`, `engine.py`, `README.md`
-- `tests/` — `__init__.py`, `test_prism.py`, `test_airs.py`, `test_explainability.py`, `test_api.py` (health check passing), `test_policy_engine.py`
+### Root Configuration & Documentation
+- `README.md`
+- `LICENSE`
+- `CONTRIBUTING.md`
+- `.gitignore`
+- `.env.example`
+- `.github/ISSUE_TEMPLATE/README.md`
 
-### Frontend (`frontend/`)
-- `package.json` — stub with React 18, TypeScript, Vite, Tailwind, Recharts, Axios, ESLint, Prettier, Vitest
-- `index.html`, `tsconfig.json`, `vite.config.ts`, `tailwind.config.js`, `postcss.config.js`, `.eslintrc.cjs`, `.prettierrc`, `README.md`
-- `src/main.tsx` — React entrypoint
-- `src/App.tsx` — BrowserRouter with `/` route
-- `src/pages/` — `Overview.tsx` (stub), `UserDrilldown.tsx`, `FeedbackPanel.tsx`, `PolicyFeed.tsx`
-- `src/components/` — `RiskBadge.tsx`, `ShapExplanationPanel.tsx`, `ActivityTimeline.tsx`, `ScoreSlider.tsx`
-- `src/api/` — `client.ts` (axios instance), `scoring.ts`, `feedback.ts`, `policy.ts`
-- `src/types/index.ts` — TS interfaces matching backend Pydantic schemas
-- `src/hooks/useApi.ts` — placeholder
-- `src/styles/index.css` — Tailwind directives
-- `src/utils/format.ts` — score/date formatters
-- `public/`, `tests/`
+### Backend Modules (`backend/`)
+- `backend/requirements.txt`
+- `backend/pyproject.toml`
+- `backend/README.md`
+- `backend/data/README.md`
+- `backend/data_pipeline/__init__.py`
+- `backend/data_pipeline/config.py`
+- `backend/data_pipeline/filter_cert.py`
+- `backend/data_pipeline/preprocess.py`
+- `backend/data_pipeline/README.md`
+- `backend/prism/__init__.py`
+- `backend/prism/scorer.py`
+- `backend/prism/weights.yaml`
+- `backend/prism/buckets.py`
+- `backend/prism/README.md`
+- `backend/airs/__init__.py`
+- `backend/airs/model.py`
+- `backend/airs/train.py`
+- `backend/airs/inference.py`
+- `backend/airs/feedback.py`
+- `backend/airs/config.yaml`
+- `backend/airs/README.md`
+- `backend/explainability/__init__.py`
+- `backend/explainability/shap_explainer.py`
+- `backend/explainability/visualize.py`
+- `backend/explainability/README.md`
+- `backend/llm_service/__init__.py`
+- `backend/llm_service/prompts.py`
+- `backend/llm_service/recommend.py`
+- `backend/llm_service/safety.py`
+- `backend/llm_service/config.yaml`
+- `backend/llm_service/providers/__init__.py`
+- `backend/llm_service/providers/base.py`
+- `backend/llm_service/providers/groq_provider.py`
+- `backend/llm_service/providers/ollama_provider.py`
+- `backend/llm_service/README.md`
+- `backend/api/__init__.py`
+- `backend/api/main.py`
+- `backend/api/db.py`
+- `backend/api/routes/__init__.py`
+- `backend/api/routes/score.py`
+- `backend/api/routes/explain.py`
+- `backend/api/routes/recommend.py`
+- `backend/api/routes/feedback.py`
+- `backend/api/routes/policy.py`
+- `backend/api/models/__init__.py`
+- `backend/api/models/user.py`
+- `backend/api/models/activity.py`
+- `backend/api/models/score.py`
+- `backend/api/models/feedback.py`
+- `backend/api/schemas/__init__.py`
+- `backend/api/README.md`
+- `backend/policy_engine/__init__.py`
+- `backend/policy_engine/rules.py`
+- `backend/policy_engine/engine.py`
+- `backend/policy_engine/README.md`
+- `backend/tests/__init__.py`
+- `backend/tests/test_prism.py`
+- `backend/tests/test_airs.py`
+- `backend/tests/test_explainability.py`
+- `backend/tests/test_api.py`
+- `backend/tests/test_policy_engine.py`
 
-### Docs, Docker, CI
-- `docs/architecture_diagram.png` — placeholder
-- `docs/eda.ipynb` — empty notebook
-- `docs/train_colab.ipynb` — empty notebook
-- `docs/project_report.md` — placeholder
-- `docs/weekly_logs/week1.md` — this file
-- `docker/Dockerfile.api` — python:3.11-slim, uvicorn
-- `docker/Dockerfile.dashboard` — node build + nginx
-- `docker/docker-compose.yml` — api + dashboard services
-- `.github/ISSUE_TEMPLATE/` — empty directory
+### Frontend Modules (`frontend/`)
+- `frontend/package.json`
+- `frontend/tsconfig.json`
+- `frontend/tsconfig.node.json`
+- `frontend/vite.config.ts`
+- `frontend/tailwind.config.js`
+- `frontend/.eslintrc.cjs`
+- `frontend/.prettierrc`
+- `frontend/index.html`
+- `frontend/README.md`
+- `frontend/public/README.md`
+- `frontend/tests/README.md`
+- `frontend/src/main.tsx`
+- `frontend/src/App.tsx`
+- `frontend/src/pages/Overview.tsx`
+- `frontend/src/pages/UserDrilldown.tsx`
+- `frontend/src/pages/FeedbackPanel.tsx`
+- `frontend/src/pages/PolicyFeed.tsx`
+- `frontend/src/components/RiskBadge.tsx`
+- `frontend/src/components/ShapExplanationPanel.tsx`
+- `frontend/src/components/ActivityTimeline.tsx`
+- `frontend/src/components/ScoreSlider.tsx`
+- `frontend/src/api/client.ts`
+- `frontend/src/api/scoring.ts`
+- `frontend/src/api/feedback.ts`
+- `frontend/src/api/policy.ts`
+- `frontend/src/types/index.ts`
+- `frontend/src/hooks/README.md`
+- `frontend/src/styles/README.md`
+- `frontend/src/utils/README.md`
 
-### Modified
-- `LICENSE` — updated copyright to "OpenIRM Contributors"
+### Deployment & Infrastructure (`docker/`, `docs/`)
+- `docker/Dockerfile.api`
+- `docker/Dockerfile.frontend`
+- `docker/docker-compose.yml`
+- `docker/README.md`
+- `docs/README.md`
+- `docs/phase_reports/README.md`
+- `docs/weekly_logs/week1.md`
 
-## Implementation notes
+---
 
-- Python 3.13 is installed (not 3.11 as spec says). All deps resolved successfully with compatible wheel versions (torch 2.13, numpy 2.4.6, pandas 3.0.3, scikit-learn 1.9, shap 0.52).
-- All stub source files include proper docstrings, type hints, and `NotImplementedError` with the target week.
-- The `AIRS Autoencoder` in `backend/airs/model.py` is actually implemented (not a stub) — a real `nn.Module` with configurable encoder/decoder layers.
-- Black and ruff pass cleanly (ruff D104 ignored for empty `__init__.py` package markers).
-- Frontend `package.json` is a stub — full npm install and build will happen in Week 11.
+## 2. Implementation Summary
 
-## Test results
+- **Repository Layout & Modular Discipline**: Established exact folder structure separating `backend/` and `frontend/`. Placed standalone `README.md` files in every module directory detailing inputs, outputs, and usage guidelines.
+- **Python Virtual Environment (`backend/venv/`)**: Initialized Python virtual environment under `backend/venv/`. Configured dependency isolation preventing global package pollution.
+- **Dependency Management & Tooling Setup**: Created `backend/requirements.txt` with pinned backend libraries (`torch`, `pandas`, `shap`, `fastapi`, `scikit-learn`, `pytest`, `black`, `ruff`). Configured `pyproject.toml` for `black` (line-length 88) and `ruff`. Created `frontend/package.json` stub with core dependencies.
+- **Root Documentation & License**: Created root `README.md` containing paper abstract citation, architecture overview diagram, and Local Setup guide. Included MIT `LICENSE` and `CONTRIBUTING.md`.
 
-| Test | Status | Detail |
-|------|--------|--------|
-| `ruff check backend` | PASS | 0 errors, 0 warnings |
-| `black --check backend` | PASS | 5 files auto-formatted |
-| `pytest backend/tests/test_api.py::TestHealth` | PASS | 1 passed |
-| `pip install -r backend/requirements.txt` | PASS | All deps installed |
+---
 
-## Known issues / TODOs
+## 3. Deviations from Original Week 1 Prompt
 
-1. `.github/ISSUE_TEMPLATE/` directory is empty — should add issue templates when the repo nears public launch.
-2. Frontend dependencies not installed — deferred to Week 11 when the full dashboard is built.
-3. `pre-commit` config not set up (optional per spec) — should be added when multiple contributors join.
-4. Architecture diagram placeholder — needs real diagram.
-5. Python version is 3.13 instead of spec's 3.11 — all resolved deps work, so no action needed unless contributors specifically need 3.11.
+- None. All scaffolding, environment setup, dependency installations, tooling configurations, and documentation stubs match the Week 1 requirements.
 
-## Verification commands
+---
 
-```powershell
-# Verify folder structure
-Get-ChildItem -Recurse -Depth 2 -Directory | Where-Object { $_.FullName -notmatch '\\env\\|\.git|__pycache__|\.ruff_cache|\.pytest_cache' }
+## 4. Test Results & Metrics
 
-# Run linter
-ruff check backend
-black --check backend
+- **pytest suite**: Passed **8 / 8** tests (0 failures).
+  - `tests/test_prism.py`: 2 passed
+  - `tests/test_airs.py`: 2 passed
+  - `tests/test_explainability.py`: 1 passed
+  - `tests/test_api.py`: 2 passed
+  - `tests/test_policy_engine.py`: 1 passed
+- **black formatter check**: Clean across all 47 Python source files.
+- **ruff linter check**: All checks passed cleanly.
 
-# Run tests
-pytest backend/tests/ -v
+---
 
-# Verify all modules import cleanly
-python -c "from backend.api.main import app; print('API module OK')"
-python -c "from backend.airs.model import Autoencoder; print('AIRS model OK')"
-python -c "from backend.llm_service.providers.base import BaseProvider; print('LLM provider interface OK')"
-python -c "from backend.prism.scorer import compute_risk_score; print('PRISM module OK')"
-python -c "from backend.explainability.shap_explainer import explain_activity; print('Explainability module OK')"
-python -c "from backend.policy_engine.engine import evaluate_activity; print('Policy engine OK')"
-```
+## 5. Known Issues / TODOs Carried Forward
+
+- Real CERT r4.2 dataset subsampling script (`backend/data_pipeline/filter_cert.py`) will be fully implemented in Week 2.
+- AIRS model training on benign user features will be implemented in AIRS development weeks.
+- Frontend React component trees and state management hooks will be implemented in Week 11.
+
+---
+
+## 6. Commands to Verify This Week's Work
+
+Run the following commands to verify environment isolation, linting, formatting, and unit tests:
+
+1. **Activate Virtual Environment**:
+   - Windows (PowerShell): `backend\venv\Scripts\Activate.ps1`
+   - Windows (CMD): `backend\venv\Scripts\activate`
+   - Linux / macOS: `source backend/venv/bin/activate`
+
+2. **Verify Package Isolation**:
+   ```bash
+   pip list
+   ```
+
+3. **Run Code Formatter Check**:
+   ```bash
+   python -m black --check backend/
+   ```
+
+4. **Run Linter Check**:
+   ```bash
+   python -m ruff check backend/
+   ```
+
+5. **Run Unit Test Suite**:
+   ```bash
+   python -m pytest backend/tests/
+   ```

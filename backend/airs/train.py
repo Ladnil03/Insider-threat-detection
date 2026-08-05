@@ -1,27 +1,45 @@
-"""Training loop for the AIRS autoencoder.
+"""AIRS Model Training Loop."""
 
-Trains on benign-activity feature vectors, validates on a held-out
-split, and saves the best checkpoint.
-"""
+from typing import Any, Dict
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+from airs.model import AIRSAutoencoder
 
 
 def train_autoencoder(
-    train_features,
-    val_features,
-    config_path: str = "airs/config.yaml",
-) -> float:
-    """Train the autoencoder and return best validation loss.
+    model: AIRSAutoencoder,
+    train_loader: torch.utils.data.DataLoader,
+    epochs: int = 10,
+    lr: float = 0.001,
+) -> Dict[str, Any]:
+    """Trains the AIRS Autoencoder model on benign baseline user activity.
 
     Args:
-        train_features: numpy array or torch Tensor of benign features.
-        val_features: Validation split.
-        config_path: Path to AIRS config YAML.
+        model: AIRSAutoencoder instance.
+        train_loader: PyTorch DataLoader containing benign training tensors.
+        epochs: Number of training epochs.
+        lr: Learning rate.
 
     Returns:
-        Best validation loss achieved.
-
-    Todo:
-        Implement training loop in Week 4.
-
+        Dictionary containing training loss history.
     """
-    raise NotImplementedError("Week 4 — implement training loop.")
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.MSELoss()
+    history = []
+
+    model.train()
+    for epoch in range(epochs):
+        total_loss = 0.0
+        for batch in train_loader:
+            optimizer.zero_grad()
+            output = model(batch)
+            loss = criterion(output, batch)
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+        history.append(total_loss)
+
+    return {"loss_history": history}

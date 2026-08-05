@@ -1,47 +1,47 @@
-# Python
+# Python virtual environment
+backend/venv/
+venv/
+env/
+ENV/
+
+# Byte-compiled / Python cache
 __pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-*.egg
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Data & Models (Do not commit dataset CSVs or checkpoints)
+backend/data/
+raw/
+filtered/
 checkpoints/
 *.pt
+*.bin
 *.pth
-.ruff_cache/
-.pytest_cache/
+*.onnx
 
-# Environment
+# Environment & Secrets
 .env
-backend/env/
-venv/
-.venv/
+.env.local
+.env.*.local
 
-# Data (large CSVs — gitignored)
-backend/data/raw/*
-backend/data/filtered/*
-!backend/data/raw/.gitkeep
-!backend/data/filtered/.gitkeep
-
-# Node / frontend
+# Node / Frontend
 node_modules/
 dist/
-frontend/dist/
-*.tsbuildinfo
+build/
+.nx/
+.cache/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
+# Logs & OS artifacts
+*.log
 .DS_Store
 Thumbs.db
+.idea/
+.vscode/
 
-# Docker
-docker/data/
-
-# Logs
-*.log
+# Coverage reports
+htmlcov/
+.coverage

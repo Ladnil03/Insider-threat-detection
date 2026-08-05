@@ -1,10 +1,10 @@
-function Overview() {
+import React from 'react';
+
+export const Overview: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-3xl font-bold text-gray-800">OpenIRM Dashboard</h1>
-      <p className="mt-2 text-gray-600">Insider Risk Management Overview</p>
+    <div className="p-4 bg-slate-800 rounded">
+      <h2 className="text-xl font-bold">System Overview</h2>
+      <p className="text-slate-400">Risk summary and top flagged users.</p>
     </div>
   );
-}
-
-export default Overview;
+};

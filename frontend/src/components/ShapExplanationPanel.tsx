@@ -1,26 +1,26 @@
-import type { ShapExplanation } from "../types";
+import React from 'react';
 
-interface ShapPanelProps {
-  features: ShapExplanation[];
+interface FeatureAttribution {
+  feature: string;
+  attribution: number;
 }
 
-function ShapExplanationPanel({ features }: ShapPanelProps) {
+interface ShapExplanationPanelProps {
+  features: FeatureAttribution[];
+}
+
+export const ShapExplanationPanel: React.FC<ShapExplanationPanelProps> = ({ features }) => {
   return (
-    <div className="rounded border p-4">
-      <h3 className="mb-2 text-lg font-semibold">Feature Contributions</h3>
-      {features.length === 0 && <p className="text-gray-400">No SHAP data.</p>}
-      <ul>
-        {features.map((f) => (
-          <li key={f.feature} className="flex justify-between py-1">
-            <span>{f.feature}</span>
-            <span className={f.contribution > 0 ? "text-red-600" : "text-green-600"}>
-              {f.contribution.toFixed(4)}
-            </span>
+    <div className="p-4 bg-slate-800 rounded border border-slate-700">
+      <h3 className="text-lg font-semibold text-slate-200 mb-3">SHAP Feature Attribution</h3>
+      <ul className="space-y-2">
+        {features.map((item) => (
+          <li key={item.feature} className="flex justify-between text-sm">
+            <span className="text-slate-300">{item.feature}</span>
+            <span className="font-mono text-blue-400">{item.attribution.toFixed(4)}</span>
           </li>
         ))}
       </ul>
     </div>
   );
-}
-
-export default ShapExplanationPanel;
+};

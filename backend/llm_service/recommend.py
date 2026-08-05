@@ -1,29 +1,45 @@
-"""Orchestrates LLM recommendation generation.
+"""LLM Recommendation Orchestrator."""
 
-Builds a prompt from (score + SHAP + context), calls the active
-provider, parses and returns the recommendation text.
-"""
+from typing import Any, Dict
+
+from llm_service.prompts import (
+    ANALYST_RECOMMENDATION_SYSTEM_PROMPT,
+    build_analyst_prompt,
+)
+from llm_service.providers.base import BaseLLMProvider
+from llm_service.providers.groq_provider import GroqProvider
+from llm_service.safety import sanitize_input_text
 
 
-def generate_recommendation(
+def get_threat_recommendation(
+    user_id: str,
     risk_score: float,
-    severity_bucket: str,
-    shap_summary: str,
-    user_history_summary: str,
-) -> str:
-    """Build prompt and call the active LLM provider for a recommendation.
+    risk_level: str,
+    shap_explanation: Dict[str, float],
+    recent_activity: Dict[str, Any],
+    provider: BaseLLMProvider = GroqProvider(),
+) -> Dict[str, Any]:
+    """Orchestrates prompt construction, sanitization, and provider invocation.
 
     Args:
-        risk_score: Numeric risk score [0, 1].
-        severity_bucket: "low" | "medium" | "high" | "critical".
-        shap_summary: Human-readable SHAP attribution summary.
-        user_history_summary: Recent activity summary for the user.
+        user_id: Target user identifier.
+        risk_score: Risk score [0.0, 1.0].
+        risk_level: Categorized risk bucket.
+        shap_explanation: Top SHAP attributions dictionary.
+        recent_activity: Activity counts dictionary.
+        provider: Active BaseLLMProvider implementation instance.
 
     Returns:
-        Plain-text analyst recommendation.
-
-    Todo:
-        Wire up provider selection and API call in Week 7.
-
+        Structured recommendation dictionary.
     """
-    raise NotImplementedError("Week 7 — implement recommendation orchestration.")
+    clean_user_id = sanitize_input_text(user_id)
+    prompt = build_analyst_prompt(
+        user_id=clean_user_id,
+        risk_score=risk_score,
+        risk_level=risk_level,
+        shap_explanation=shap_explanation,
+        recent_activity=recent_activity,
+    )
+    return provider.generate_recommendation(
+        prompt=prompt, system_prompt=ANALYST_RECOMMENDATION_SYSTEM_PROMPT
+    )

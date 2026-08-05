@@ -1,17 +1,23 @@
-"""Tests for the FastAPI endpoints."""
+"""Integration Tests for FastAPI Endpoints."""
 
 from fastapi.testclient import TestClient
 
-from backend.api.main import app
+from api.main import app
 
 client = TestClient(app)
 
 
-class TestHealth:
-    """Health-check endpoint tests."""
+def test_health_endpoint() -> None:
+    """Tests /health status endpoint."""
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
 
-    def test_health_returns_ok(self) -> None:
-        """Verify the /health endpoint returns ok."""
-        response = client.get("/health")
-        assert response.status_code == 200
-        assert response.json() == {"status": "ok"}
+
+def test_score_endpoint() -> None:
+    """Tests /api/v1/score endpoint."""
+    response = client.post("/api/v1/score", json={"user_id": "USR-001"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user_id"] == "USR-001"
+    assert "composite_score" in data

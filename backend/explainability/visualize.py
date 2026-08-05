@@ -1,22 +1,24 @@
-"""Visualisation helpers for SHAP explanations.
+"""Visualization Helpers for SHAP Summary and Attribution Data."""
 
-Provides functions to generate summary bar plots, waterfall plots,
-and force plots for the frontend or notebook display.
-"""
+from typing import Any, Dict
 
 
-def generate_waterfall_plot(shap_values: dict, output_path: str) -> str:
-    """Generate and save a waterfall SHAP plot.
+def format_shap_summary_dict(shap_result: Dict[str, Any]) -> Dict[str, Any]:
+    """Formats raw SHAP output into a clean JSON-serializable structure for frontend Recharts rendering.
 
     Args:
-        shap_values: Dict mapping feature → SHAP value.
-        output_path: Where to save the plot image.
+        shap_result: Output from compute_shap_explanations.
 
     Returns:
-        Path to the saved image.
-
-    Todo:
-        Implement plot generation in Week 6.
-
+        Structured chart payload with sorted feature importances.
     """
-    raise NotImplementedError("Week 6 — implement visualisation.")
+    attributions = shap_result.get("feature_attributions", {})
+    sorted_features = sorted(
+        [{"feature": k, "attribution": v} for k, v in attributions.items()],
+        key=lambda x: abs(x["attribution"]),
+        reverse=True,
+    )
+    return {
+        "base_value": shap_result.get("base_value", 0.0),
+        "features": sorted_features,
+    }

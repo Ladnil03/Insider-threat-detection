@@ -1,25 +1,23 @@
-"""Abstract provider interface for LLM inference.
-
-All providers (Groq, Ollama, future) must implement this interface
-so the orchestration layer never depends on a specific provider.
-"""
+"""Abstract Interface for LLM Service Providers."""
 
 from abc import ABC, abstractmethod
+from typing import Any, Dict
 
 
-class BaseProvider(ABC):
-    """Abstract base class for LLM providers."""
+class BaseLLMProvider(ABC):
+    """Abstract base class establishing uniform interface for all LLM providers."""
 
     @abstractmethod
-    def complete(self, prompt: str, **kwargs) -> str:
-        """Send a prompt to the LLM and return the completion.
+    def generate_recommendation(
+        self, prompt: str, system_prompt: str
+    ) -> Dict[str, Any]:
+        """Generates plain-English analyst recommendation from prompt.
 
         Args:
-            prompt: The full prompt string.
-            **kwargs: Provider-specific parameters (temperature, max_tokens, etc.).
+            prompt: User-specific threat context prompt.
+            system_prompt: System prompt instructing LLM persona and format.
 
         Returns:
-            The model's text completion.
-
+            Dictionary containing raw output string, model name, and token metrics.
         """
-        ...
+        pass
