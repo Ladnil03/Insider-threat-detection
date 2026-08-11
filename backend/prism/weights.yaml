@@ -1,8 +1,23 @@
-# PRISM Rule Engine Category Weights
+# PRISM (Privilege-based Risk & Insider Scoring Mechanism) Configuration
+
+# Component Weights (Formula: R = Wp*Sp + WA*SA + WC*SC + WIP*SIP + WB*SB + WD*SD + WCA*SCA)
+# Note: Sum of weights = 0.20 + 0.15 + 0.15 + 0.15 + 0.15 + 0.10 + 0.10 = 1.00
 weights:
-  after_hours_logon: 0.20
-  usb_exfiltration: 0.35
-  sensitive_file_access: 0.25
-  job_search_activity: 0.20
+  user_privilege: 0.05       # Wp: User role privilege level
+  activity_type: 0.25        # WA: Action type severity (exfil vs file move vs logon)
+  application_context: 0.15 # WC: Target app context (SharePoint, USB, personal webmail)
+  ip_address: 0.10           # WIP: IP network origin (known vs unknown/off-network)
+  business_hours: 0.10       # WB: Time of activity (business hours vs off-hours/night)
+  device_compliance: 0.15    # WD: Endpoint device compliance (compliant vs unmanaged USB)
+  cumulative_activity: 0.20  # WCA: Volume / frequency saturation score
+
 
 decay_factor: 0.95
+
+# Risk Bucket Thresholds (Normalized 0.0 to 1.0 scale)
+thresholds:
+  low_max: 0.30        # Scores < 0.30 -> LOW risk
+  moderate_max: 0.60   # Scores 0.30 - 0.60 -> MODERATE risk
+  high_max: 0.80       # Scores 0.60 - 0.80 -> HIGH risk
+                       # Scores >= 0.80 -> CRITICAL risk
+

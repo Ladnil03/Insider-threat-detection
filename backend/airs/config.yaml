@@ -1,13 +1,21 @@
-# AIRS Autoencoder Model Configuration
 model:
-  input_dim: 16
-  hidden_dims: [12, 8, 4]
-  latent_dim: 2
+  input_dim: 72
+  hidden_dims:
+  - 48
+  - 24
+  latent_dim: 12
   dropout_rate: 0.1
-
 training:
-  epochs: 50
-  batch_size: 64
+  epochs: 30
+  batch_size: 128
   learning_rate: 0.001
-  alpha: 0.7  # blending weight for analyst feedback
+  weight_decay: 1.0e-05
+  alpha: 0.7
   retrain_threshold_count: 50
+storage:
+  checkpoint_dir: checkpoints
+  model_save_name: airs_autoencoder.pt
+  scaler_save_name: airs_scaler.pkl
+thresholds:
+  reconstruction_threshold: 0.12
+  ensemble_beta: 0.1
