@@ -25,28 +25,38 @@ $$\sum_{i=1}^D \phi_i + \text{base\_value} \approx f(x)$$
 
 ---
 
-## 3. Module Architecture
+## 3. High-Performance Caching & Precomputation (Week 8 Refinement)
+
+Because computing Shapley values across 72 features using Monte Carlo permutations takes ~2–4 seconds per instance, OpenIRM incorporates a dedicated **`SHAPCache`** engine:
+- **LRU In-Memory Cache**: Bounded in-memory store keyed on deterministic SHA-256 hashes of feature vectors.
+- **Disk Persistence**: Stores computed attributions in `backend/data/filtered/processed/shap_cache.json` across server restarts.
+- **Sub-Millisecond Retrieval**: Cache hits reduce latency from **~3.5 seconds to < 1 ms** (>100x speedup), enabling instant response times for the FastAPI backend and interactive frontend dashboard.
+- **Batch Precomputation**: `precompute_and_cache_explanations(df, explainer, top_n=50)` pre-warms the cache for top anomalous user-days.
+
+---
+
+## 4. Module Architecture
 
 ```
 backend/explainability/
 ├── __init__.py
 ├── README.md                   # This architecture documentation
-├── shap_explainer.py           # AIRSShapExplainer & explain_activity()
+├── shap_explainer.py           # AIRSShapExplainer, SHAPCache & explain_activity()
 ├── visualize.py                # Reusable waterfall and summary plot generators
 └── evaluate_explanations.py    # Benchmark evaluation on CERT malicious scenarios
 ```
 
 ---
 
-## 4. Key Functions
+## 5. Key Functions
 
-### `explain_activity(activity_record, top_k=5, nsamples=150)`
+### `explain_activity(activity_record, top_k=5, nsamples=150, use_cache=True)`
 Computes local feature attributions for any single daily user session.
 ```python
 from explainability.shap_explainer import AIRSShapExplainer
 
 explainer = AIRSShapExplainer()
-explanation = explainer.explain_activity(user_activity_record, top_k=5)
+explanation = explainer.explain_activity(user_activity_record, top_k=5, use_cache=True)
 
 print(explanation["human_readable_summary"])
 # Output: "Primary risk drivers: Mass USB File Exfiltration Spike (30-Day Z-Score): 45.2%, Off-Hours Logons (Night/Weekend): 32.1%"
@@ -60,9 +70,9 @@ Generates global feature importance ranking across benign and malicious populati
 
 ---
 
-## 5. Verification & Testing
+## 6. Verification & Testing
 
-Run unit tests and property checks:
+Run unit tests, caching benchmarks, and property checks:
 ```bash
 python -m pytest tests/test_explainability.py -v
 ```

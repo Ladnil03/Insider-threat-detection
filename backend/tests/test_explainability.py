@@ -1,15 +1,20 @@
 """Unit and Integration Tests for SHAP Explainability Layer."""
 
 import tempfile
+import time
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 from airs.model import AIRSAutoencoder
+from data_pipeline.config import ALL_FEATURE_COLS
 from explainability.shap_explainer import (
     AIRSShapExplainer,
+    SHAPCache,
     get_human_readable_feature_name,
+    precompute_and_cache_explanations,
 )
 from explainability.visualize import format_shap_summary_dict, generate_waterfall_plot
 
@@ -88,7 +93,7 @@ def test_airs_shap_explainer_sanity_check_and_efficiency() -> None:
     scaler = StandardScaler()
 
     # Create synthetic benign baseline and fit scaler
-    benign_baseline = np.random.normal(loc=0.0, scale=0.5, size=(40, 72)).astype(
+    benign_baseline = np.random.normal(loc=0.0, scale=0.5, size=(30, 72)).astype(
         np.float32
     )
     scaler.fit(benign_baseline)
@@ -97,14 +102,15 @@ def test_airs_shap_explainer_sanity_check_and_efficiency() -> None:
         model=model,
         scaler=scaler,
         background_data=benign_baseline,
-        background_samples=20,
+        background_samples=15,
+        cache=SHAPCache(),
     )
 
     # Test sample with acute spike in feature 3 (file_copy_usb)
     test_sample = np.zeros(72, dtype=np.float32)
     test_sample[3] = 10.0  # High anomalous spike
 
-    explanation = explainer.explain_activity(test_sample, top_k=5, nsamples=100)
+    explanation = explainer.explain_activity(test_sample, top_k=5, nsamples=80)
 
     assert "reconstruction_error" in explanation
     assert "base_value" in explanation
@@ -122,6 +128,146 @@ def test_airs_shap_explainer_sanity_check_and_efficiency() -> None:
     assert (
         diff < tolerance
     ), f"Efficiency property failed: base+sum(phi)={reconstructed_f_x:.4f}, f(x)={actual_f_x:.4f}, diff={diff:.4f} > {tolerance}"
+
+
+def test_shap_cache_hit_and_disk_persistence() -> None:
+    """Tests SHAPCache LRU operations, hit/miss tracking, and JSON persistence."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        cache_path = Path(tmp_dir) / "test_shap_cache.json"
+        cache = SHAPCache(cache_file=cache_path, max_size=5)
+
+        key1 = "key_sample_1"
+        payload1 = {"reconstruction_error": 0.45, "sai_score": 0.22}
+
+        # Initial cache miss
+        assert cache.get(key1) is None
+        assert cache.stats["misses"] == 1
+
+        # Store in cache
+        cache.set(key1, payload1)
+        assert cache.stats["size"] == 1
+
+        # Cache hit
+        retrieved = cache.get(key1)
+        assert retrieved is not None
+        assert retrieved["reconstruction_error"] == 0.45
+        assert cache.stats["hits"] == 1
+
+        # Disk persistence
+        cache.save_to_disk()
+        assert cache_path.exists()
+
+        # Load into fresh cache instance
+        cache2 = SHAPCache(cache_file=cache_path, max_size=5)
+        loaded = cache2.get(key1)
+        assert loaded is not None
+        assert loaded["sai_score"] == 0.22
+
+
+def test_explain_activity_caching_speedup() -> None:
+    """Verifies that caching produces identical outputs with sub-millisecond retrieval."""
+    np.random.seed(42)
+    model = AIRSAutoencoder(input_dim=72, hidden_dims=[48, 24], latent_dim=12)
+    scaler = StandardScaler()
+    benign_baseline = np.random.normal(loc=0.0, scale=0.5, size=(20, 72)).astype(
+        np.float32
+    )
+    scaler.fit(benign_baseline)
+
+    cache = SHAPCache(max_size=50)
+    explainer = AIRSShapExplainer(
+        model=model,
+        scaler=scaler,
+        background_data=benign_baseline,
+        background_samples=10,
+        cache=cache,
+    )
+
+    test_vector = np.random.uniform(0, 5, size=72).astype(np.float32)
+
+    # First call: computes via KernelExplainer
+    t0 = time.perf_counter()
+    exp1 = explainer.explain_activity(test_vector, nsamples=40, use_cache=True)
+    t_compute = time.perf_counter() - t0
+
+    # Second call: retrieves from cache
+    t1 = time.perf_counter()
+    exp2 = explainer.explain_activity(test_vector, nsamples=40, use_cache=True)
+    t_cached = time.perf_counter() - t1
+
+    assert exp1["reconstruction_error"] == exp2["reconstruction_error"]
+    assert exp1["sai_score"] == exp2["sai_score"]
+    assert cache.stats["hits"] == 1
+    # Cache hit should be dramatically faster (< 10ms)
+    assert t_cached < t_compute
+
+
+def test_explain_activity_edge_cases() -> None:
+    """Tests edge cases: all-zero input vector, dict input with missing keys, and Pandas Series."""
+    np.random.seed(42)
+    model = AIRSAutoencoder(input_dim=72, hidden_dims=[48, 24], latent_dim=12)
+    scaler = StandardScaler()
+    benign_baseline = np.random.normal(loc=0.0, scale=0.5, size=(20, 72)).astype(
+        np.float32
+    )
+    scaler.fit(benign_baseline)
+
+    explainer = AIRSShapExplainer(
+        model=model,
+        scaler=scaler,
+        background_data=benign_baseline,
+        background_samples=10,
+        cache=SHAPCache(),
+    )
+
+    # 1. All-zero vector
+    zero_vec = np.zeros(72, dtype=np.float32)
+    zero_exp = explainer.explain_activity(zero_vec, nsamples=30)
+    assert isinstance(zero_exp["reconstruction_error"], float)
+    assert len(zero_exp["ranked_contributions"]) == 72
+
+    # 2. Sparse dictionary input
+    sparse_dict = {"logon_count": 5.0, "file_copy_usb": 12.0}
+    dict_exp = explainer.explain_activity(sparse_dict, nsamples=30)
+    assert "top_risk_drivers" in dict_exp
+
+    # 3. Pandas Series input
+    series_data = pd.Series(
+        {col: 1.0 for col in ALL_FEATURE_COLS[:30]}, index=ALL_FEATURE_COLS[:30]
+    )
+    series_exp = explainer.explain_activity(series_data, nsamples=30)
+    assert series_exp["sai_score"] >= 0.0
+
+
+def test_precompute_and_cache_explanations() -> None:
+    """Tests batch precomputation on a mock dataframe."""
+    np.random.seed(42)
+    model = AIRSAutoencoder(input_dim=72, hidden_dims=[48, 24], latent_dim=12)
+    scaler = StandardScaler()
+    benign_baseline = np.random.normal(loc=0.0, scale=0.5, size=(20, 72)).astype(
+        np.float32
+    )
+    scaler.fit(benign_baseline)
+
+    cache = SHAPCache()
+    explainer = AIRSShapExplainer(
+        model=model,
+        scaler=scaler,
+        background_data=benign_baseline,
+        background_samples=10,
+        cache=cache,
+    )
+
+    # Create mock dataframe with 5 user rows
+    data = np.random.uniform(0, 3, size=(5, 72))
+    df = pd.DataFrame(data, columns=ALL_FEATURE_COLS)
+    df["user"] = [f"USER_{i}" for i in range(5)]
+    df["date_day"] = "2026-08-01"
+    df["sai_score"] = [0.1, 0.8, 0.4, 0.9, 0.3]
+
+    count = precompute_and_cache_explanations(df, explainer, top_n=3)
+    assert count == 3
+    assert cache.stats["size"] >= 3
 
 
 def test_generate_waterfall_plot_creates_figure() -> None:

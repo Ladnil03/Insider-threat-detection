@@ -1,14 +1,24 @@
-# LLM Service Configuration
-active_provider: groq # Options: 'groq', 'ollama'
+# LLM Service Configuration for OpenIRM Analyst Recommendations
+active_provider: groq  # Swappable options: 'groq' (default), 'ollama' (local on-prem)
 
 providers:
   groq:
-    model: llama-3.3-70b-versatile
+    # Selected default: llama-3.3-70b-versatile (state-of-the-art reasoning, reliable JSON mode)
+    # Fast alternative: llama-3.1-8b-instant (high token rate limit, lightning inference)
+    # Deep reasoning: deepseek-r1-distill-llama-70b
+    default_model: llama-3.3-70b-versatile
+    fast_model: llama-3.1-8b-instant
     api_key_env: GROQ_API_KEY
-    timeout_seconds: 15
-    temperature: 0.2
+    timeout_seconds: 20
+    temperature: 0.1
+    max_tokens: 1024
+    json_mode: true
+    max_retries: 3
+    retry_backoff_factor: 1.5
+
   ollama:
     model: llama3:8b
     base_url: http://localhost:11434
     timeout_seconds: 30
-    temperature: 0.2
+    temperature: 0.1
+    json_mode: true
