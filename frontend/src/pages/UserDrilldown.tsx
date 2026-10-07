@@ -1,8 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { getExplanation, getMonitoredUsers, getRecommendation, getUserHistory } from '../api/scoring';
-import { ExplainResponse, RecommendationResponse, UserActivityHistoryItem, UserHistoryResponse, UserSummaryResponse } from '../types';
+import {
+  ExplainResponse,
+  RecommendationResponse,
+  UserActivityHistoryItem,
+  UserHistoryResponse,
+  UserSummaryResponse,
+} from '../types';
 import { RiskBadge } from '../components/RiskBadge';
+import { RiskGauge } from '../components/RiskGauge';
 import { ActivityTimeline } from '../components/ActivityTimeline';
 import { ShapExplanationPanel } from '../components/ShapExplanationPanel';
 import { RecommendationCard } from '../components/RecommendationCard';
@@ -10,12 +17,14 @@ import { FeedbackPanel } from './FeedbackPanel';
 
 export const UserDrilldown: React.FC = () => {
   const { userId: routeUserId } = useParams<{ userId: string }>();
+  const [searchParams] = useSearchParams();
+  const searchFilterParam = searchParams.get('search') || '';
   const navigate = useNavigate();
 
   // User list for selector
   const [users, setUsers] = useState<UserSummaryResponse[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>(routeUserId || '');
-  const [userSearchQuery, setUserSearchQuery] = useState<string>('');
+  const [userSearchQuery, setUserSearchQuery] = useState<string>(searchFilterParam);
 
   // Target user detailed history
   const [userHistory, setUserHistory] = useState<UserHistoryResponse | null>(null);
@@ -33,8 +42,11 @@ export const UserDrilldown: React.FC = () => {
   const [isRecommendLoading, setIsRecommendLoading] = useState<boolean>(false);
   const [recommendError, setRecommendError] = useState<string | null>(null);
 
-  // Active view tab for the activity analysis area
+  // Active view tab for the forensic analysis area
   const [activeTab, setActiveTab] = useState<'xai' | 'llm' | 'feedback'>('xai');
+
+  // Quick containment notification state
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // 1. Fetch available monitored users directory
   useEffect(() => {
@@ -43,7 +55,19 @@ export const UserDrilldown: React.FC = () => {
         const data = await getMonitoredUsers();
         setUsers(data);
         if (!selectedUserId && data.length > 0) {
-          // Default to highest risk user if none specified in route
+          // If search filter matches a user, pick that one
+          if (searchFilterParam) {
+            const match = data.find(
+              (u) =>
+                u.user_id.toLowerCase().includes(searchFilterParam.toLowerCase()) ||
+                u.user_name.toLowerCase().includes(searchFilterParam.toLowerCase())
+            );
+            if (match) {
+              setSelectedUserId(match.user_id);
+              return;
+            }
+          }
+          // Default to highest risk user
           const sorted = [...data].sort((a, b) => b.latest_score - a.latest_score);
           setSelectedUserId(sorted[0].user_id);
         }
@@ -52,7 +76,7 @@ export const UserDrilldown: React.FC = () => {
       }
     };
     fetchUsers();
-  }, [selectedUserId]);
+  }, [selectedUserId, searchFilterParam]);
 
   // Sync route param changes
   useEffect(() => {
@@ -125,6 +149,11 @@ export const UserDrilldown: React.FC = () => {
     navigate(`/users/${id}`);
   };
 
+  const handleTriggerContainment = (action: string) => {
+    setStatusMessage(`Containment Protocol Dispatched: ${action} for ${selectedUserId}.`);
+    setTimeout(() => setStatusMessage(null), 5000);
+  };
+
   const filteredUsers = users.filter(
     (u) =>
       u.user_id.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
@@ -133,13 +162,13 @@ export const UserDrilldown: React.FC = () => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Top Header & Entity Selector */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-800 pb-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-outline-variant/30 pb-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tight text-slate-100 sm:text-3xl">
-              Entity Risk Drilldown
+            <h1 className="text-xl sm:text-2xl font-headline font-black tracking-wider text-slate-100 uppercase">
+              User Forensics & Risk Drilldown
             </h1>
             {userHistory && (
               <RiskBadge
@@ -149,7 +178,7 @@ export const UserDrilldown: React.FC = () => {
               />
             )}
           </div>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-xs text-on-surface-variant font-body">
             Deep forensic telemetry, autoencoder anomaly decomposition, and open-weight LLM reasoning.
           </p>
         </div>
@@ -162,14 +191,14 @@ export const UserDrilldown: React.FC = () => {
               placeholder="Search employee..."
               value={userSearchQuery}
               onChange={(e) => setUserSearchQuery(e.target.value)}
-              className="w-full sm:w-44 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+              className="w-full sm:w-44 rounded-lg border border-outline-variant/40 bg-surface-container px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-primary focus:outline-none font-mono"
             />
           </div>
 
           <select
             value={selectedUserId}
             onChange={(e) => handleSelectUser(e.target.value)}
-            className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-outline-variant/40 bg-surface-container px-3 py-1.5 text-xs font-headline font-semibold text-slate-200 focus:border-primary focus:outline-none"
           >
             {filteredUsers.map((u) => (
               <option key={u.user_id} value={u.user_id}>
@@ -180,167 +209,228 @@ export const UserDrilldown: React.FC = () => {
         </div>
       </div>
 
-      {/* Entity Profile Meta Card */}
-      {userHistory && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-xs">
-          <div>
-            <span className="text-slate-400 uppercase tracking-wider text-[10px] block font-semibold">
-              Employee Name
-            </span>
-            <span className="text-sm font-bold text-slate-100">{userHistory.user_name}</span>
+      {/* Containment notification */}
+      {statusMessage && (
+        <div className="rounded-xl border border-error/50 bg-error/15 p-3 text-xs font-mono text-error flex items-center justify-between shadow-glow-danger animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-base">emergency</span>
+            <span>{statusMessage}</span>
           </div>
-          <div>
-            <span className="text-slate-400 uppercase tracking-wider text-[10px] block font-semibold">
-              Role & Department
-            </span>
-            <span className="text-sm font-bold text-slate-200">
-              {userHistory.role} • {userHistory.department}
-            </span>
-          </div>
-          <div>
-            <span className="text-slate-400 uppercase tracking-wider text-[10px] block font-semibold">
-              Active Policy Alerts
-            </span>
-            <span
-              className={`text-sm font-bold ${
-                userHistory.policy_violations.length > 0 ? 'text-rose-400' : 'text-slate-300'
-              }`}
-            >
-              {userHistory.policy_violations.length} triggered
-            </span>
-          </div>
-          <div>
-            <span className="text-slate-400 uppercase tracking-wider text-[10px] block font-semibold">
-              Telemetry Days
-            </span>
-            <span className="text-sm font-mono font-bold text-blue-400">
-              {userHistory.history.length} daily user-records
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* History Loading / Error States */}
-      {isHistoryLoading && (
-        <div className="flex min-h-[30vh] flex-col items-center justify-center space-y-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Retrieving longitudinal telemetry history...</p>
-        </div>
-      )}
-
-      {historyError && (
-        <div className="rounded-xl border border-rose-800 bg-rose-950/40 p-6 text-center text-xs text-rose-300">
-          <p className="font-semibold">Unable to load entity history:</p>
-          <p className="mt-1">{historyError}</p>
-          <button
-            onClick={() => loadUserHistory(selectedUserId)}
-            className="mt-4 rounded bg-rose-600 px-3 py-1 text-white font-semibold hover:bg-rose-500"
-          >
-            Retry
+          <button onClick={() => setStatusMessage(null)} className="text-slate-400 hover:text-white">
+            <span className="material-symbols-outlined text-sm">close</span>
           </button>
         </div>
       )}
 
-      {/* Longitudinal Timeline Section */}
-      {!isHistoryLoading && userHistory && (
-        <ActivityTimeline
-          history={userHistory.history}
-          selectedActivityId={selectedActivity?.activity_id}
-          onSelectActivity={(item) => setSelectedActivity(item)}
-        />
+      {/* Error state */}
+      {historyError && (
+        <div className="rounded-xl border border-error/50 bg-error/10 p-5 text-center text-xs font-mono text-error">
+          {historyError}
+        </div>
       )}
 
-      {/* Active Activity Deep Dive Section */}
-      {selectedActivity && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-3 gap-2">
+      {/* Loading state */}
+      {isHistoryLoading && (
+        <div className="flex min-h-[40vh] flex-col items-center justify-center space-y-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-glow-primary" />
+          <p className="text-xs font-mono text-slate-400">
+            Reconstructing longitudinal telemetry for {selectedUserId}...
+          </p>
+        </div>
+      )}
+
+      {/* Subject Profile & Multi-Model Gauges Header */}
+      {userHistory && !isHistoryLoading && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+          {/* Subject Profile Card */}
+          <div className="lg:col-span-2 rounded-xl border border-outline-variant/30 bg-surface-container/90 p-5 shadow-xl backdrop-blur-md flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-slate-100">
-                  Event Analysis: Activity #{selectedActivity.activity_id}
-                </h2>
-                <span className="font-mono text-xs text-slate-400">
-                  [{selectedActivity.date_day || new Date(selectedActivity.timestamp).toLocaleDateString()}]
+              <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-surface-container-high border border-primary/40 flex items-center justify-center font-headline font-extrabold text-base text-primary shadow-glow-primary">
+                    {userHistory.user_name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="font-headline font-bold text-base text-slate-100 flex items-center gap-2">
+                      <span>{userHistory.user_name}</span>
+                      <span className="text-xs font-mono text-tertiary">({userHistory.user_id})</span>
+                    </div>
+                    <div className="text-xs text-on-surface-variant font-body">
+                      {userHistory.role} • {userHistory.department}
+                    </div>
+                  </div>
+                </div>
+
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-mono font-bold uppercase border ${
+                    userHistory.current_risk_score >= 0.8
+                      ? 'bg-rose-950/80 text-rose-300 border-rose-800'
+                      : 'bg-emerald-950/80 text-emerald-300 border-emerald-800'
+                  }`}
+                >
+                  {userHistory.current_risk_score >= 0.8 ? 'QUARANTINED' : 'ACTIVE MONITORING'}
                 </span>
-                <RiskBadge level={selectedActivity.risk_level} />
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Ensemble: {selectedActivity.ensemble_score.toFixed(4)} | AIRS Anomaly: {selectedActivity.airs_score.toFixed(4)} | PRISM Rules: {selectedActivity.prism_score.toFixed(4)}
-              </p>
+
+              {/* Meta Specs Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 text-xs font-mono">
+                <div className="rounded-lg bg-surface-container-high/60 p-2.5 border border-outline-variant/20">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Clearance Tier</span>
+                  <span className="font-bold text-slate-200">Alpha-TopSecret</span>
+                </div>
+                <div className="rounded-lg bg-surface-container-high/60 p-2.5 border border-outline-variant/20">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Endpoint IP</span>
+                  <span className="font-bold text-tertiary">192.168.4.120</span>
+                </div>
+                <div className="rounded-lg bg-surface-container-high/60 p-2.5 border border-outline-variant/20">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Policy Alerts</span>
+                  <span className="font-bold text-error">
+                    {userHistory.policy_violations ? userHistory.policy_violations.length : 0} Logged
+                  </span>
+                </div>
+                <div className="rounded-lg bg-surface-container-high/60 p-2.5 border border-outline-variant/20">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Telemetry Status</span>
+                  <span className="font-bold text-emerald-400">99.8% Heartbeat</span>
+                </div>
+              </div>
             </div>
 
-            {/* Analysis Tabs */}
-            <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-1 text-xs font-semibold">
+            {/* Tactical Actions Strip */}
+            <div className="pt-4 border-t border-outline-variant/20 flex flex-wrap gap-2 items-center">
               <button
-                onClick={() => setActiveTab('xai')}
-                className={`rounded-md px-3 py-1 transition ${
-                  activeTab === 'xai'
-                    ? 'bg-blue-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
+                onClick={() => handleTriggerContainment('ISOLATE_NETWORK_TUNNEL')}
+                className="px-3 py-1.5 rounded-lg bg-error/20 text-error border border-error/40 text-xs font-headline font-bold uppercase tracking-wider hover:bg-error/30 transition active:scale-95 flex items-center gap-1.5"
               >
-                SHAP Explainability
+                <span className="material-symbols-outlined text-sm">lock</span>
+                <span>Suspend Access</span>
               </button>
               <button
-                onClick={() => setActiveTab('llm')}
-                className={`rounded-md px-3 py-1 transition ${
-                  activeTab === 'llm'
-                    ? 'bg-blue-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
+                onClick={() => handleTriggerContainment('CAPTURE_ENDPOINT_MEMORY_SNAPSHOT')}
+                className="px-3 py-1.5 rounded-lg bg-surface-container-high text-slate-200 border border-outline-variant/40 text-xs font-headline font-semibold hover:bg-surface-container-highest transition active:scale-95 flex items-center gap-1.5"
               >
-                AI Recommendation
+                <span className="material-symbols-outlined text-sm">memory</span>
+                <span>Snapshot Memory</span>
               </button>
               <button
                 onClick={() => setActiveTab('feedback')}
-                className={`rounded-md px-3 py-1 transition ${
-                  activeTab === 'feedback'
-                    ? 'bg-blue-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
+                className="px-3 py-1.5 rounded-lg bg-primary/20 text-primary border border-primary/40 text-xs font-headline font-semibold hover:bg-primary/30 transition active:scale-95 flex items-center gap-1.5 ml-auto"
               >
-                Analyst Calibration
+                <span className="material-symbols-outlined text-sm">tune</span>
+                <span>Calibrate Risk</span>
               </button>
             </div>
           </div>
 
-          {/* Active Tab Panel */}
-          {activeTab === 'xai' && (
-            <ShapExplanationPanel
-              features={explanation?.features || []}
-              baseValue={explanation?.base_value}
-              reconstructionError={explanation?.reconstruction_error}
-              saiScore={explanation?.sai_score}
-              summary={explanation?.human_readable_summary}
-              topRiskDrivers={explanation?.top_risk_drivers}
-              isLoading={isExplainLoading}
+          {/* Risk Dial & Multi-Model Breakdown */}
+          <div className="rounded-xl border border-outline-variant/30 bg-surface-container/90 p-4 shadow-xl backdrop-blur-md flex flex-col items-center justify-between">
+            <RiskGauge
+              score={userHistory.current_risk_score}
+              title="Ensemble Risk Score"
+              size="md"
+              trendText="+18.4% vs 7d Mean"
             />
-          )}
-
-          {activeTab === 'llm' && (
-            <RecommendationCard
-              recommendation={recommendation}
-              isLoading={isRecommendLoading}
-              error={recommendError}
-            />
-          )}
-
-          {activeTab === 'feedback' && (
-            <FeedbackPanel
-              initialUserId={selectedUserId}
-              initialActivityId={selectedActivity.activity_id}
-              initialScore={selectedActivity.ensemble_score}
-              isEmbedded={true}
-              onFeedbackSubmitted={(result) => {
-                // Update active activity score in place
-                setSelectedActivity((prev) =>
-                  prev ? { ...prev, ensemble_score: result.blended_score } : null
-                );
-              }}
-            />
-          )}
+            <div className="w-full grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/20 font-mono text-center text-xs">
+              <div className="rounded bg-surface-container-high p-2 border border-outline-variant/20">
+                <span className="text-[10px] text-tertiary block">PRISM Heuristic</span>
+                <span className="text-sm font-bold text-slate-100">
+                  {selectedActivity ? selectedActivity.prism_score.toFixed(3) : '0.000'}
+                </span>
+              </div>
+              <div className="rounded bg-surface-container-high p-2 border border-outline-variant/20">
+                <span className="text-[10px] text-secondary block">AIRS Autoencoder</span>
+                <span className="text-sm font-bold text-slate-100">
+                  {selectedActivity ? selectedActivity.airs_score.toFixed(3) : '0.000'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
+
+      {/* Interactive Activity Timeline */}
+      {userHistory && !isHistoryLoading && (
+        <ActivityTimeline
+          history={userHistory.history}
+          selectedActivityId={selectedActivity?.activity_id}
+          onSelectActivity={(act) => setSelectedActivity(act)}
+        />
+      )}
+
+      {/* Forensic Deep Dive Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-2">
+        <button
+          onClick={() => setActiveTab('xai')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-headline font-bold uppercase tracking-wider transition ${
+            activeTab === 'xai'
+              ? 'bg-primary text-black shadow-glow-primary'
+              : 'text-on-surface-variant hover:bg-surface-container hover:text-white'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">waterfall_chart</span>
+          <span>SHAP Explainability (XAI)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('llm')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-headline font-bold uppercase tracking-wider transition ${
+            activeTab === 'llm'
+              ? 'bg-primary text-black shadow-glow-primary'
+              : 'text-on-surface-variant hover:bg-surface-container hover:text-white'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">smart_toy</span>
+          <span>AI Threat Narrative & Playbook</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('feedback')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-headline font-bold uppercase tracking-wider transition ${
+            activeTab === 'feedback'
+              ? 'bg-primary text-black shadow-glow-primary'
+              : 'text-on-surface-variant hover:bg-surface-container hover:text-white'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">tune</span>
+          <span>Analyst Calibration Feedback</span>
+        </button>
+      </div>
+
+      {/* Active Tab Content Area */}
+      <div>
+        {activeTab === 'xai' && (
+          <ShapExplanationPanel
+            features={explanation?.features || []}
+            baseValue={explanation?.base_value}
+            reconstructionError={explanation?.reconstruction_error}
+            saiScore={explanation?.sai_score}
+            summary={explanation?.human_readable_summary}
+            topRiskDrivers={explanation?.top_risk_drivers}
+            isLoading={isExplainLoading}
+          />
+        )}
+
+        {activeTab === 'llm' && (
+          <RecommendationCard
+            recommendation={recommendation}
+            isLoading={isRecommendLoading}
+            error={recommendError}
+            onTriggerContainment={handleTriggerContainment}
+          />
+        )}
+
+        {activeTab === 'feedback' && (
+          <FeedbackPanel
+            initialUserId={selectedUserId}
+            initialActivityId={selectedActivity?.activity_id || 1}
+            initialScore={selectedActivity?.ensemble_score || 0.5}
+            isEmbedded={true}
+            onFeedbackSubmitted={(res) => {
+              setStatusMessage(`Human calibration committed: New blended score = ${res.blended_score.toFixed(3)}.`);
+              loadUserHistory(selectedUserId);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 };

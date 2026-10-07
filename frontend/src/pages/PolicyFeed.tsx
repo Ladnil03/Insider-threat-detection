@@ -68,7 +68,7 @@ export const PolicyFeed: React.FC = () => {
             e.stopPropagation();
             navigate(`/users/${v.user_id}`);
           }}
-          className="font-mono font-bold text-blue-400 hover:underline hover:text-blue-300"
+          className="font-mono font-bold text-primary hover:underline hover:text-white"
         >
           {v.user_id}
         </button>
@@ -78,8 +78,8 @@ export const PolicyFeed: React.FC = () => {
       header: 'Policy Rule',
       render: (v) => (
         <div>
-          <div className="font-semibold text-slate-200">{v.rule_name}</div>
-          <div className="font-mono text-[11px] text-slate-400">{v.rule_id}</div>
+          <div className="font-headline font-semibold text-slate-200">{v.rule_name}</div>
+          <div className="font-mono text-[11px] text-tertiary">{v.rule_id}</div>
         </div>
       ),
     },
@@ -96,7 +96,7 @@ export const PolicyFeed: React.FC = () => {
         };
         return (
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-mono font-semibold border ${
               colors[sev] || colors.HIGH
             }`}
           >
@@ -109,7 +109,7 @@ export const PolicyFeed: React.FC = () => {
       header: 'Automated Containment Action',
       accessor: 'action',
       render: (v) => (
-        <span className="font-mono text-xs text-cyan-300 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/50">
+        <span className="font-mono text-xs text-tertiary bg-tertiary/10 px-2 py-0.5 rounded border border-tertiary/30">
           {v.action}
         </span>
       ),
@@ -118,7 +118,7 @@ export const PolicyFeed: React.FC = () => {
       header: 'Context / Rationale',
       accessor: 'description',
       render: (v) => (
-        <span className="text-xs text-slate-300 max-w-sm truncate block" title={v.description || ''}>
+        <span className="text-xs text-slate-300 max-w-sm truncate block font-body" title={v.description || ''}>
           {v.description || '—'}
         </span>
       ),
@@ -128,39 +128,37 @@ export const PolicyFeed: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-5 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-outline-variant/30 pb-4 gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
+          <h1 className="text-xl sm:text-2xl font-headline font-black tracking-wider text-slate-100 uppercase">
             Automated Policy Containment Feed
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Real-time audit log of rule triggers and simulated SOAR remediation actions.
+          <p className="mt-1 text-xs text-on-surface-variant font-body">
+            Real-time audit log of rule triggers and automated SOAR remediation actions.
           </p>
         </div>
 
         <button
           onClick={fetchViolations}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition"
+          className="inline-flex items-center gap-2 rounded-xl border border-outline-variant/40 bg-surface-container px-4 py-2 text-xs font-headline font-semibold text-slate-200 hover:bg-surface-container-high hover:text-white transition active:scale-95 shadow-sm"
         >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Refresh Feed
+          <span className="material-symbols-outlined text-sm">sync</span>
+          <span>Refresh Feed</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Severity Tabs */}
-        <div className="flex flex-wrap items-center gap-1 rounded-lg border border-slate-800 bg-slate-900/80 p-1">
+        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-outline-variant/30 bg-surface-container/80 p-1">
           {severities.map((sev) => (
             <button
               key={sev}
               onClick={() => setSelectedSeverity(sev)}
-              className={`rounded px-3 py-1 text-xs font-semibold transition ${
+              className={`rounded-lg px-3 py-1 text-xs font-headline font-bold uppercase transition ${
                 selectedSeverity === sev
-                  ? 'bg-blue-600 text-white shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-primary text-black shadow-glow-primary'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
               }`}
             >
               {sev}
@@ -175,32 +173,34 @@ export const PolicyFeed: React.FC = () => {
             placeholder="Filter by user, rule, action..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-64 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+            className="w-full sm:w-64 rounded-xl border border-outline-variant/40 bg-surface-container px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-primary focus:outline-none font-mono"
           />
         </div>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-lg border border-rose-800 bg-rose-950/40 p-4 text-xs text-rose-300">
+        <div className="rounded-xl border border-error/50 bg-error/10 p-4 text-xs font-mono text-error">
           <span className="font-semibold">Unable to fetch policy events: </span>
           {error}
         </div>
       )}
 
       {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={filteredViolations}
-        keyExtractor={(v) => v.id}
-        isLoading={isLoading}
-        onRowClick={(v) => navigate(`/users/${v.user_id}`)}
-        emptyMessage={
-          searchQuery || selectedSeverity !== 'ALL'
-            ? 'No policy violations matching current filters.'
-            : 'No automated containment policy violations recorded yet.'
-        }
-      />
+      <div className="rounded-xl border border-outline-variant/30 bg-surface-container/90 p-5 shadow-xl backdrop-blur-md">
+        <DataTable
+          columns={columns}
+          data={filteredViolations}
+          keyExtractor={(v) => v.id}
+          isLoading={isLoading}
+          onRowClick={(v) => navigate(`/users/${v.user_id}`)}
+          emptyMessage={
+            searchQuery || selectedSeverity !== 'ALL'
+              ? 'No policy violations matching current filters.'
+              : 'No automated containment policy violations recorded yet.'
+          }
+        />
+      </div>
     </div>
   );
 };

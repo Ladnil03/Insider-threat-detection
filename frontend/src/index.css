@@ -1,19 +1,85 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@config "../tailwind.config.js";
+@source "../index.html";
+@source "../src/**/*.{ts,tsx}";
 
 :root {
   color-scheme: dark;
+
+  /* OpenIRM design tokens */
+  --bg-primary: #0b0f19;
+  --bg-secondary: #161b22;
+  --border: #2d3344;
+  --text-primary: #e6e9ef;
+  --text-secondary: #8b92a5;
+
+  --risk-low: #22c55e;
+  --risk-medium: #f59e0b;
+  --risk-high: #ef4444;
+  --risk-critical: #b91c1c;
+
+  --accent-primary: #6366f1;
+
+  /* shadcn semantic vars (same values) */
+  --background: #0b0f19;
+  --foreground: #e6e9ef;
+  --card: #161b22;
+  --card-foreground: #e6e9ef;
+  --popover: #161b22;
+  --popover-foreground: #e6e9ef;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #161b22;
+  --secondary-foreground: #e6e9ef;
+  --muted: #161b22;
+  --muted-foreground: #8b92a5;
+  --accent: #161b22;
+  --accent-foreground: #e6e9ef;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --input: #2d3344;
+  --ring: #6366f1;
+  --radius: 0.625rem;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #0b0f19;
-  color: #f1f5f9;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+      Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Material Symbols Outlined icon tweaks */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Subtle tactical grid background */
+.soc-grid-bg {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, rgba(45, 51, 68, 0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(45, 51, 68, 0.2) 1px, transparent 1px);
 }
 
 /* Custom subtle scrollbar */
@@ -23,14 +89,81 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #0b0f19;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #2d3344;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3d4564;
+}
+
+/* Tier-colored indicator for the model score bars (Progress overrides bg-primary) */
+.risk-progress [data-slot='progress-indicator'] {
+  background: var(--risk-color, #6366f1);
+}
+
+/* One orchestrated entrance for the alert feed — runs once on mount */
+.feed-reveal {
+  animation: feed-reveal 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes feed-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/*
+ * React Bits-style animated glow border, critical alert cards only.
+ * ponytail: rotating conic-gradient beam; degrades to a static 1px ring
+ * in browsers without @property support.
+ */
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.glow-critical {
+  position: relative;
+}
+
+.glow-critical::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--glow-angle),
+    transparent 0%,
+    #ef4444 18%,
+    #b91c1c 32%,
+    transparent 50%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: glow-rotate 5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes glow-rotate {
+  to {
+    --glow-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-reveal,
+  .glow-critical::after {
+    animation: none;
+  }
 }
